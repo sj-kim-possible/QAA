@@ -1,0 +1,570 @@
+#                        #     #                                                 
+#         ##   #####     ##    #  ####  ##### ###### #####   ####   ####  #    # 
+#        #  #  #    #    # #   # #    #   #   #      #    # #    # #    # #   #  
+#       #    # #####     #  #  # #    #   #   #####  #####  #    # #    # ####   
+#       ###### #    #    #   # # #    #   #   #      #    # #    # #    # #  #   
+#       #    # #    #    #    ## #    #   #   #      #    # #    # #    # #   #  
+####### #    # #####     #     #  ####    #   ###### #####   ####   ####  #    # 
+
+Bi622-Bi623 2022
+sj kim
+
+#############################################################
+#                                                           #
+#                           QAA                             #
+#                                                           #
+#############################################################
+
+--------------
+| Objectives |
+--------------
+The objectives of this assignment are to use existing tools for quality assessment and adaptor trimming, 
+compare the quality assessments to those from your own software, and to demonstrate your ability to 
+summarize other important information about this RNA-Seq data set.
+
+In short: this assignment is an RNA-seq workflow!
+
+--------
+| Data |
+--------
+Library Assignments: /projects/bgmp/shared/Bi622/QAA_data_assignments.txt
+SJ      22_3H_both_S16_L008     8_2F_fox_S7_L008
+
+The demultiplexed, gzipped .fastq files are here: /projects/bgmp/shared/2017_sequencing/demultiplexed/
+
+DON'T MOVE, COPY, OR UNZIP THIS DATA!!
+
+============================================
+> part 1: read quality score distributions <
+============================================
+.•° ✿ °•.
+    1
+°•. ✿ .•°
+Using FastQC via the command line on Talapas, produce plots of quality score distributions for 
+R1 and R2 reads. Also, produce plots of the per-base N content, and comment on whether or not they are 
+consistent with the quality score plots.
+
+sbatch part1_fastqc.sh
+job id: 21831378
+^ error: used wrong filename for 22 r1.
+rerun: 21831428
+using 4 threads: Elapsed (wall clock) time (h:mm:ss or m:ss): 4:05.59
+
+unzip the result files by cd into output dir and:
+unzip 22_3H_both_S16_L008_R1_001_fastqc.zip 
+or unzip *fastqc.zip 
+
+.•° ✿ °•.
+    2
+°•. ✿ .•°
+Run your quality score plotting script from your Demultiplexing assignment. (Make sure you're using the 
+"running sum" strategy!!) Describe how the FastQC quality score distribution plots compare to your own. 
+If different, propose an explanation. Also, does the runtime differ? If so, why?
+
+mkdir part1-2_plots to hold plots 
+cp plotQualScoreDist.sh into part1-2_plots
+update filepaths to my assigned fastq files: 22 and 8
+sbatch plotQualScoreDist.sh
+Submitted batch job 21902181
+
+plots from fastqc and from my script look similar! as I hoped for.
+Runtime differences:
+fastqc: 
+Elapsed (wall clock) time (h:mm:ss or m:ss): 4:05.59
+demux_assignment_the_first plotting:
+22_R1: Elapsed (wall clock) time (h:mm:ss or m:ss): 1:12.84
+22_R2: Elapsed (wall clock) time (h:mm:ss or m:ss): 1:09.65
+8_R1: Elapsed (wall clock) time (h:mm:ss or m:ss): 10:51.10
+8_R2: Elapsed (wall clock) time (h:mm:ss or m:ss): 10:50.46
+Total: 24:04.05
+
+fastqc was approx. 6x faster.
+
+.•° ✿ °•.
+    3
+°•. ✿ .•°
+Comment on the overall data quality of your two libraries.
+Data quality appears to be very high except for the first ~10 reads. On average, there are no reads below
+a quality score of 30. 
+
+=======================================
+> part 2: Adaptor Trimming Comparison <
+=======================================
+.•° ✿ °•.
+    4
+°•. ✿ .•°
+Create a new conda environment called QAA and install cutadapt and Trimmomatic. Google around if you need 
+a refresher on how to create conda environments. Recommend doing this in an interactive session, not the login node!
+Make sure you check your installations with:
+- cutadapt --version (should be 4.1) 
+- trimmomatic -version (should be 0.39)
+
+Interactive sesh:
+srun --account=bgmp --partition=bgmp --nodes=1 --ntasks-per-node=1 --time=1:00:00 --cpus-per-task=1 --pty bash
+
+conda cheat sheet:
+https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf
+conda create --name QAA 
+conda activate QAA
+conda install cutadapt
+cutadapt --version (4.1) yay
+conda install trimmomatic
+trimmomatic -version (0.39) yay
+
+.•° ✿ °•.
+    5
+°•. ✿ .•°
+Using cutadapt, properly trim adapter sequences from your assigned files. Be sure to read how to use cutadapt. 
+Use default settings. What proportion of reads (both R1 and R2) were trimmed?
+Try to determine what the adapters are on your own. Check with README.md to confirm.
+Sanity check: use Unix skills to search for the adapter sequences in your datasets and confirm the expected sequence 
+orientations. Report the commands you used, the reasoning behind them, and how you confirmed the adapter sequences.
+
+╭━ ⋅𖥔⋅ ━━✶━━ ⋅𖥔⋅ ━╮
+      cutadapt 
+╰━ ⋅𖥔⋅ ━━✶━━ ⋅𖥔⋅ ━╯
+https://cutadapt.readthedocs.io/en/stable/guide.html#basic-usage
+https://support-docs.illumina.com/SHARE/AdapterSeq/illumina-adapter-sequences.pdf pg 53: TruSeq
+
+cutadapt --help:
+Run "cutadapt --help" to see all command-line options.
+See https://cutadapt.readthedocs.io/ for full documentation.
+cutadapt removes adapter sequences from high-throughput sequencing reads.
+
+Usage:
+    cutadapt -a ADAPTER [options] [-o output.fastq] input.fastq
+
+For paired-end reads:
+    cutadapt -a ADAPT1 -A ADAPT2 [options] -o out1.fastq -p out2.fastq in1.fastq in2.fastq
+
+Replace "ADAPTER" with the actual sequence of your 3' adapter. IUPAC wildcard
+characters are supported. All reads from input.fastq will be written to
+output.fastq with the adapter sequence removed. Adapter matching is
+error-tolerant. Multiple adapter sequences can be given (use further -a
+options), but only the best-matching adapter will be removed.
+
+Input may also be in FASTA format. Compressed input and output is supported and
+auto-detected from the file name (.gz, .xz, .bz2). Use the file name '-' for
+standard input/output. Without the -o option, output is sent to standard output.
+
+◞┈┈┈┈┈┈┈┈┈┈┈◟
+Adapters are:
+◝┈┈┈┈┈┈┈┈┈┈┈◜
+R1: AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+
+R2: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+
+^ Illumina TruSeq adapters: https://support-docs.illumina.com/SHARE/AdapterSeq/illumina-adapter-sequences.pdf pg 53
+
+How do I figure out what the Adapters are if the bench scientist didn't tell you what they were???
+grep possible adapters! 
+
+It does make sense that in this dataset, the adapters that we see are only found in a small portion of the reads.
+However, if you're sequencing microRNA, you should maybe see the adapers in all your reads. all depends on what 
+was sequenced.
+
+◞┈┈┈┈◟
+22 R1:
+◝┈┈┈┈◜
+(QAA) [skim6@n225 part2-5_cutadapt]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/22_3H_both_S16_L008_R1_001.fastq.gz 
+| grep -c "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+7563
+
+7,563 sequences with the adapter out of 4,050,899 sequences
+
+(QAA) [skim6@n225 part2-5_cutadapt]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/22_3H_both_S16_L008_R1_001.fastq.gz 
+| grep --color=always "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA" | head
+(QAA) [skim6@n225 part2-5_cutadapt]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/22_3H_both_S16_L008_R1_001.fastq.gz 
+| grep --color=always "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA" | tail
+Used --color=always option in grep to see where in the sequences the adapters were
+mostly towards the back half of the sequences 
+
+◞┈┈┈┈◟
+22 R2:
+◝┈┈┈┈◜
+(QAA) [skim6@n225 QAA]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/22_3H_both_S16_L008_R2_001.fastq.gz
+ | grep -c "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+7848
+
+7,848 sequences with the adapter out of 4,050,899 sequences
+
+SANITY CHECK: grepping R1 with R2 adapter should result in 0 matches!!!!!
+(QAA) [skim6@n225 QAA]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/22_3H_both_S16_L008_R1_001.fastq.gz
+ | grep -c "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+0 #whewf
+AND VICE VERSA!! grepping R2 with R1 adapter should result in 0 matches!!!!
+(QAA) [skim6@n225 QAA]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/22_3H_both_S16_L008_R2_001.fastq.gz
+ | grep -c "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+0 #yay
+
+using grep option --color=always:
+R2 adapters are also usually found towards the end of the sequences, which makes sense for the way that sequencing is ordered:
+Primers bind to the adapter and sequences from 5' to 3', starting with insert and reading thru the adapter, if the insert is
+shorter than the sequencing cycles
+
+◞┈┈┈◟
+8 R1:
+◝┈┈┈◜
+(QAA) [skim6@n225 part2-5_cutadapt]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/8_2F_fox_S7_L008_R1_001.fastq.gz
+ | grep -c "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+161695
+161,695 sequences with the adapter out of 36,482,601 total sequences 
+
+using grep option --color=always:
+zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/8_2F_fox_S7_L008_R1_001.fastq.gz
+ | grep --color=always "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA" | head
+the adapter sequences do show up, towards the end of the sequence
+| tail:
+the adapter sequences do show up, towards the end of the seq
+
+◞┈┈┈◟
+8 R2:
+◝┈┈┈◜
+(QAA) [skim6@n225 part2-5_cutadapt]$ zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/8_2F_fox_S7_L008_R2_001.fastq.gz
+ | grep -c "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+164539
+164,539 sequences with the adapter out of 36,482,601 total sequences
+
+zcat /projects/bgmp/shared/2017_sequencing/demultiplexed/8_2F_fox_S7_L008_R2_001.fastq.gz
+ | grep --color=always "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" | head
+the adapter sequences do show up, towards the end of the sequence
+
+sbatch cutadapt.sh
+job id: 22027519
+^ oops wrong var name
+
+sbatch cutadapt.sh
+job id:22027608
+
+took ~22 minutes total
+zcat one of the files head -30 and the sequences now have different lengths
+
+** there was one summary file from fastqc that had a hit for frequently overrepresented sequence but it wasn't an adapter 
+^^ blast this sequence to find out what it is
+
+.•° ✿ °•.
+    6
+°•. ✿ .•°
+Use Trimmomatic to quality trim your reads. Specify the following, in this order:
+
+LEADING: quality of 3
+TRAILING: quality of 3
+SLIDING WINDOW: window size of 5 and required quality of 15
+MINLENGTH: 35 bases
+Be sure to output compressed files and clear out any intermediate files.
+
+╭━ ⋅𖥔⋅ ━━✶━━ ⋅𖥔⋅ ━╮
+     trimmomatic
+╰━ ⋅𖥔⋅ ━━✶━━ ⋅𖥔⋅ ━╯
+http://www.usadellab.org/cms/?page=trimmomatic
+https://datacarpentry.org/wrangling-genomics/03-trimming/index.html
+http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf
+
+Usage: 
+       PE [-version] [-threads <threads>] [-phred33|-phred64] [-trimlog <trimLogFile>] [-summary <statsSummaryFile>] 
+       [-quiet] [-validatePairs] [-basein <inputBase> | <inputFile1> <inputFile2>] [-baseout <outputBase> | <outputFile1P> 
+       <outputFile1U> <outputFile2P> <outputFile2U>] <trimmer1>...
+
+this part is at: /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic
+sbatch trim.sh
+job id: 22042429 #winner winner chicken dinner
+
+many a bug in my trimmomatic script..mostly spelling errors
+also, a weird bug where:
+$22_R1_cutadapt was evaluating to _R1_cutadapt, which of course wasn't a variable
+similar issue with:
+$8_R1_cutadapt was eval to _R1_cutadapt. 
+This was a problem with all of my variables when I named them starting with numbers. bash problem??
+
+zcat | head -20 all the files and they all *look* like standard fastq files! 
+what other sanity checks at this point?
+runtime:
+22: Elapsed (wall clock) time (h:mm:ss or m:ss): 1:49.21
+8: Elapsed (wall clock) time (h:mm:ss or m:ss): 15:41.73
+
+run again but specify a trimlog to get some stats from the run:
+job id: 22043281
+
+22 runtime:
+Elapsed (wall clock) time (h:mm:ss or m:ss): 2:52.07
+8 runtime:
+Elapsed (wall clock) time (h:mm:ss or m:ss): 24:55.41
+longer because it was writing out the trimlog? 
+trimlog is a long file:
+(base) [skim6@talapas-ln1 trimmed_22]$ wc -l trimlog_22.txt 
+8101798 trimlog_22.txt
+
+(base) [skim6@talapas-ln1 trimmed_22]$ cat trimlog_22.txt | head -20
+K00337:83:HJKJNBBXX:8:1101:2970:1191 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:2970:1191 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:6766:1191 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:6766:1191 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:12510:1191 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:12510:1191 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:19451:1191 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:19451:1191 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:20567:1191 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:20567:1191 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:2006:1209 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:2006:1209 2:N:0:NCGACAAG+NTTGTCGA 97 1 98 3
+K00337:83:HJKJNBBXX:8:1101:2128:1209 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:2128:1209 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:3041:1209 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:3041:1209 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:3975:1209 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:3975:1209 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+K00337:83:HJKJNBBXX:8:1101:6614:1209 1:N:0:NCGACAAG+NTTGTCGA 101 0 101 0
+K00337:83:HJKJNBBXX:8:1101:6614:1209 2:N:0:NCGACAAG+NTTGTCGA 100 1 101 0
+
+what does it mean??
+
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+NOTE: GET RID OF INTERMEDIATE FILES AFTER RUNNING TRIMMOMATIC. DELETE OUTPUT FROM CUTADAPT.
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
+
+Question:
+why do trimmomatic *after* cutadapt? It looks like trimmomatic also has cutadapt's ability to remove adapters. 
+Wouldn't it be simpler to do just trimmomatic?
+
+.•° ✿ °•.
+    7
+°•. ✿ .•°
+Plot the trimmed read length distributions for both R1 and R2 reads (on the same plot). You can produce 2 different 
+plots for your 2 different RNA-seq samples. There are a number of ways you could possibly do this. One useful thing 
+your plot should show, for example, is whether R1s are trimmed more extensively than R2s, or vice versa. Comment on 
+whether you expect R1s and R2s to be adapter-trimmed at different rates.
+
+translation: run fastqc on trimmed files.
+
+/projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-7_fastqc/trim_fastqc.sh
+sbatch trim_fastqc.sh
+job id: 22053888
+Elapsed (wall clock) time (h:mm:ss or m:ss): 3:19.66
+
+PUT PLOTS SIDE BY SIDE -- TAKE FROM FASTQC OUTPUT, DON'T GENERATE NEW PLOTS. YAY! 
+^ nope just kidding. make new plots.
+
+22 r1 trimmed distribution:
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_22/22_3H_both_S16_L008_R1_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' | sort | uniq -c | sort -n > 22_r1_dist_read_len.txt
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_22/22_3H_both_S16_L008_R1_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' > 22_r1_read_len.txt
+
+22 r2 trimmed distribution:
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_22/22_3H_both_S16_L008_R2_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' | sort | uniq -c | sort -n > 22_r2_dist_read_len.txt
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_22/22_3H_both_S16_L008_R2_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' > 22_r2_read_len.txt
+
+8 r1 trimmed distribution:
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_8/8_2F_fox_S7_L008_R1_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' | sort | uniq -c | sort -n > 8_r1_trim_dist_read_len.txt
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_8/8_2F_fox_S7_L008_R1_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' > 8_r1_trim_read_len.txt
+
+8 r2 trimmed distribution:
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_8/8_2F_fox_S7_L008_R2_001_paired.fastq.gz | sed -n "2~4p" | awk '{print length($0)}' | sort | uniq -c | sort -n > 8_r2_trim_dist_read_len.txt
+zcat /projects/bgmp/skim6/bioinfo/Bi622/QAA/part2-6_trimmomatic/trimmed_8/8_2F_fox_S7_L008_R2_001_paired.fastq.gz | awk '{print length($0)}' > 8_r2_trim_read_len.txt
+
+============================================
+> part 3: Alignment and Strand-Specificity <
+============================================
+.•° ✿ °•.
+    8
+°•. ✿ .•°
+Install sofware. In your QAA environment, use conda to install:
+star x
+numpy x
+pysam x
+matplotlib x
+htseq x
+
+conda activate QAA
+conda install star -c bioconda
+STAR --version 
+2.7.10a
+conda install numpy
+conda install pysam -c bioconda
+conda install matplotlib
+conda install htseq -c bioconda
+
+.•° ✿ °•.
+    9
+°•. ✿ .•°
+Find publicly available mouse genome fasta files (Ensemble release 107) and generate an alignment database from them. 
+Align the reads to your mouse genomic database using a splice-aware aligner. Use the settings specified in PS8 from Bi621.
+Hint - you will need to use gene models to perform splice-aware alignment, see PS8 from Bi621.
+
+◞┈┈┈┈┈┈┈┈┈┈┈┈◟
+file structure:
+◝┈┈┈┈┈┈┈┈┈┈┈┈◜
+/projects/bgmp/skim6/bioinfo/Bi622/QAA/part3-9_star
+|>Mus_musculus.GRCm39.107.gtf [gene annotation]
+|>mus/
+    -Mus_musculus.. [genome assembly]
+|>Mus_musculus.GRCm39.dna.ens107.STAR_2.7.10a/
+    -buildDB.sh
+    -STAR.sh
+    -[holds database for alignment]
+    -[holds sam/bam files from alignment]
+
+mouse genome fasta: 
+http://ftp.ensembl.org/pub/release-107/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz
+wget http://ftp.ensembl.org/pub/release-107/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz
+
+mouse gtf: 
+http://ftp.ensembl.org/pub/release-107/gtf/mus_musculus/Mus_musculus.GRCm39.107.gtf.gz
+
+PS8 settings:
+Build a STAR database out of the reference sequence using the STAR program using --runMode genomeGenerate. 
+This will k-merize your genome to build a STAR database. Question: Does --runMode genomeGenerate take compressed 
+files as input? Do not forget to record resource usage with /usr/bin/time -v. You will need to specify all of the 
+following options (see the STAR manual):
+--runThreadN 8
+--runMode genomeGenerate
+--genomeDir <See above...>
+--genomeFastaFiles <???>
+--sjdbGTFfile <???>
+
+Run STAR to to align the reads to the reference genome. (Be sure to use the queuing system and request 8 cores on 1 node.)
+/usr/bin/time -v STAR --runThreadN 8 --runMode alignReads \
+--outFilterMultimapNmax 3 \
+--outSAMunmapped Within KeepPairs \
+--alignIntronMax 1000000 --alignMatesGapMax 1000000 \
+--readFilesCommand zcat \
+--readFilesIn <reads_file1> <reads_file2> \
+--genomeDir <genome_directory> \
+--outFileNamePrefix <output_filename_prefix>
+
+sbatch buildDB.sh
+job id: 22053995
+Elapsed (wall clock) time (h:mm:ss or m:ss): 15:01.27
+exit status 0, finished successfully
+
+sbatch STAR.sh
+job id: 22054001
+sample 22: Elapsed (wall clock) time (h:mm:ss or m:ss): 0:31.69
+sample 8: Elapsed (wall clock) time (h:mm:ss or m:ss): 4:15.63
+
+sample 22 aligned sam file:
+/projects/bgmp/skim6/bioinfo/Bi622/QAA/part3-9_star/Mus_musculus.GRCm39.dna.ens107.STAR_2.7.10a/22_3H_both_S16_L008_mus.GRCm39.dna.ens107.STAR.Aligned.out.sam
+
+sample 8 aligned sam file:
+/projects/bgmp/skim6/bioinfo/Bi622/QAA/part3-9_star/Mus_musculus.GRCm39.dna.ens107.STAR_2.7.10a/8_2F_fox_S7_mus.GRCm39.dna.ens107.STAR.Aligned.out.sam
+
+.•° ✿ °•.
+    10
+°•. ✿ .•°
+Using your script from PS8 in Bi621, report the number of mapped and unmapped reads from each of your 2 sam files. 
+Make sure that your script is looking at the bitwise flag to determine if reads are primary or secondary mapping 
+(update/fix your script if necessary).
+
+cd /projects/bgmp/skim6/bioinfo/Bi622/QAA/part3-10/
+./mapcount.py -f /projects/bgmp/skim6/bioinfo/Bi622/QAA/part3-9_star/Mus_musculus.GRCm39.dna.ens107.STAR_2.7.10a/22_3H_both_S16_L008_mus.GRCm39.dna.ens107.STAR.Aligned.out.sam
+sample 22:
+mappedCount:7,677,920
+notMapped:124,334
+
+./mapcount.py -f /projects/bgmp/skim6/bioinfo/Bi622/QAA/part3-9_star/Mus_musculus.GRCm39.dna.ens107.STAR_2.7.10a/8_2F_fox_S7_mus.GRCm39.dna.ens107.STAR.Aligned.out.sam
+sample 8:
+mappedCount:67,070,995
+notMapped:2,511,319
+
+.•° ✿ °•.
+    11
+°•. ✿ .•°
+Count reads that map to features using htseq-count. You should run htseq-count twice: once with --stranded=yes and 
+again with --stranded=reverse. Use default parameters otherwise.
+
+usage: htseq-count [-h] [--version] [-f {sam,bam,auto}] [-r {pos,name}] [--max-reads-in-buffer MAX_BUFFER_SIZE] [-s {yes,no,reverse}]
+                   [-a MINAQUAL] [-t FEATURE_TYPE] [-i IDATTR] [--additional-attr ADDITIONAL_ATTRIBUTES] [--add-chromosome-info]
+                   [-m {union,intersection-strict,intersection-nonempty}] [--nonunique {none,all,fraction,random}]
+                   [--secondary-alignments {score,ignore}] [--supplementary-alignments {score,ignore}] [-o SAMOUTS] [-p {SAM,BAM,sam,bam}]
+                   [-d OUTPUT_DELIMITER] [-c OUTPUT_FILENAME] [--counts-output-sparse] [--append-output] [-n NPROCESSES]
+                   [--feature-query FEATURE_QUERY] [-q] [--with-header]
+                   samfilenames [samfilenames ...] featuresfilename
+
+This script takes one or more alignment files in SAM/BAM format and a feature file in GFF format and calculates for each feature the number
+of reads mapping to it. See http://htseq.readthedocs.io/en/master/count.html for details.
+positional arguments:
+  samfilenames          Path to the SAM/BAM files containing the mapped reads. If '-' is selected, read from standard input
+  featuresfilename      Path to the GTF file containing the features
+
+(QAA) [skim6@talapas-ln1 part3-11_htseq]$ htseq-count --version
+2.0.2
+
+htseq job id: 22158793
+stranded = yes, sample 22
+Elapsed (wall clock) time (h:mm:ss or m:ss): 4:41.97
+stranded = reverse, sample 22
+Elapsed (wall clock) time (h:mm:ss or m:ss): 4:50.07
+stranded = yes, sample 8
+Elapsed (wall clock) time (h:mm:ss or m:ss): 33:24.67
+stranded = reverse, sample 8
+Elapsed (wall clock) time (h:mm:ss or m:ss): 35:10.57
+
+Need to re-run because htseq-count.out file got over written by each run. rename each .out with .genecount
+sample 22 yes:
+job id: 22205030
+Elapsed (wall clock) time (h:mm:ss or m:ss): 4:44.01
+
+sample 22 reverse:
+job id: 22205225
+Elapsed (wall clock) time (h:mm:ss or m:ss): 4:57.03
+
+
+sample 8 yes:
+job id: 22205437
+Elapsed (wall clock) time (h:mm:ss or m:ss): 33:58.05
+
+sample 8 reverse:
+job id:22205726
+Elapsed (wall clock) time (h:mm:ss or m:ss): 34:56.74
+
+.•° ✿ °•.
+    12
+°•. ✿ .•°
+Demonstrate convincingly whether or not the data are from “strand-specific” RNA-Seq libraries. Include any 
+comands/scripts used. Briefly describe your evidence, using quantitative statements (e.g. "I propose that these data 
+are/are not strand-specific, because X% of the reads are y, as opposed to z.").
+Hint - recall ICA4 from Bi621.
+
+From htseq-counts documentation:
+for stranded=yes and paired-end reads, the first read has to be on the same strand and the second read on the opposite strand. 
+For stranded=reverse, these rules are reversed. first read on opposite strand, second read on same strand.
+
+stranded = no: same or opposite strand of feature. both reads on both 5'-3' and 3'-5' count as "gene a" 
+stranded = yes: paired: 1st on same strand, 2nd on opp strand
+stranded = rev: paired: 1st on opp, 2nd on same 
+
+Determine the percentage of reads that mapped to a feature(gene) for each file and sample separately.
+
+sample 22
+Sum the number of reads that mapped to a feature, calculate the total number of reads. determine percentage.
+cat fw_22_htseq22205030.genecount | awk '$1~"ENSMUSG" {mapped+=$2} END {print mapped}'
+fw_22 mapped reads: 148785
+cat fw_22_htseq22205030.genecount | awk '{mapped+=$2} END {print mapped}'
+fw_22 total reads: 3901127
+
+cat rv_22_htseq22205225.genecount | awk '$1~"ENSMUSG" {mapped+=$2} END {print mapped}'
+rv_22 mapped reads: 3394239
+cat rv_22_htseq22205225.genecount | awk '{mapped+=$2} END {print mapped}'
+rv_22 total reads:3901127
+
+fw_22 % mapped: 148785/3901127*100 = 3.81%
+rv_22 % mapped: 3394239/3901127*100 = 87.0%
+Reverse orientation had a much higher percentage of mapped reads, which means that this is a stranded RNA-seq library, with the reverse strand as the "sense" strand. 
+
+sample 8
+Sum the number of reads that mapped to a feature, calculate the total number of reads. determine percentage.
+cat fw_8_htseq22205437.genecount | awk '$1~"ENSMUSG" {mapped+=$2} END {print mapped}'
+fw_8 mapped reads: 1282235
+cat fw_8_htseq22205437.genecount | awk '{mapped+=$2} END {print mapped}'
+fw_8 total reads: 34791157
+
+cat rv_8_htseq22205726.genecount | awk '$1~"ENSMUSG" {mapped+=$2} END {print mapped}'
+rv_8 mapped reads: 28041293
+cat rv_8_htseq22205726.genecount | awk '{mapped+=$2} END {print mapped}'
+rv_8 total reads: 34791157
+
+fw_8 % mapped: 1282235/34791157 * 100 = 3.69%
+rv_8 % mapped: 28041293/34791157 * 100 = 80.6%
+
+reverse orientation mapped 80.6% and forward mapped 3.69%, therefore this is a stranded RNA-seq library and the reverse strand was the "sense" strand.
+
+what if you run stranded=no?
+job id: 22209775
